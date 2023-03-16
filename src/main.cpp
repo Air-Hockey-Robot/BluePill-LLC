@@ -58,6 +58,8 @@ float xf_prev, yf_prev;
 array<float,6> cx;
 array<float,6> cy;
 
+int testStage;
+
 
 /*
 Read left and right motor angles from the encoders.
@@ -425,13 +427,15 @@ void setup() {
 
     read_motor_angles(); //Need a dummy call to get the previous angle variable set properly
 
-    home_table(12, 12, 10);
+    // home_table(12, 12, 10);
 
     Serial.println("BEGIN CSV");
     Serial.println("Time(ms),X_Target(cm),Y_Target(cm),Left_Error(deg),Right_Error(deg),Left_PWM,Right_PWM");
 
     previous_time = 0;
     start_time = micros();
+
+    testStage = 0;
 }
 
 void loop() {
@@ -440,46 +444,13 @@ void loop() {
 
     t = (micros() - start_time) / 1000000.0;
 
-    // Update xf, yf, vxf, vyf, and traj_duration
-    get_target_from_hlc();
+    array<float,2> angles = read_motor_angles();
+    array<float,2> pos = theta_to_xy(angles[0], angles[1]);
+    float pwm = 20;
 
-    // If HLC gave us a new target, update the path
-    if (xf != xf_prev || yf != yf_prev) {
-        update_trajectory_coeffs(t);
+    if (t < 1) {
+        set_motor_pwms(pwm, -pwm);   
+    } else if (t >= 1) {
+        set_motor_pwms(0, 0);   
     }
-
-    if (t < (tf + 0.01)) {
-        float power_2 = t*t;
-        float power_3 = power_2*t;
-        float power_4 = power_3*t;
-        float power_5 = power_4*t;
-
-        float x_pos = cx[0] + cx[1]*t + cx[2]*power_2 + cx[3]*power_3 + cx[4]*power_4 + cx[5]*power_5;
-        float y_pos = cy[0] + cy[1]*t + cy[2]*power_2 + cy[3]*power_3 + cy[4]*power_4 + cy[5]*power_5;
-
-        if(x_pos < X_MIN) {
-            x_pos = X_MIN;
-        } else if(x_pos > X_MAX) {
-            x_pos = X_MAX;
-        }
-
-        if(y_pos < Y_MIN) {
-            y_pos = Y_MIN;
-        } else if(y_pos > Y_MAX) {
-            y_pos = Y_MAX;
-        }
-
-        command_motors(x_pos, y_pos, t, previous_time);
-    } else {
-        set_motor_pwms(0, 0);
-        exit(0);
-    }
-
-    previous_time = t;
-    xf_prev = xf;
-    yf_prev = yf;
-
-    // Needed if we use the actual initial velocity instead of the ideal velocity
-    // array<float,2> angles = read_motor_angles();
-    // array<float,2> prev_pos = theta_to_xy(angles[0], angles[1]);
 }
