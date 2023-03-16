@@ -429,6 +429,7 @@ void setup() {
 
     // home_table(12, 12, 10);
 
+    delay(1000);
     Serial.println("BEGIN CSV");
     Serial.println("Time(ms),X_Target(cm),Y_Target(cm),Left_Error(deg),Right_Error(deg),Left_PWM,Right_PWM");
 
@@ -448,10 +449,17 @@ void loop() {
     array<float,2> pos = theta_to_xy(angles[0], angles[1]);
     float pwm;
 
-    if (t < 1) {
-        pwm = 20;
-    } else if (t >= 1) {
+    if (t < 3) {
+        pwm = 10;
+    }
+    if (t >= 3) {
+        pwm = -10;
+    } 
+    if (t >= 6) {
         pwm = 0;
+    } 
+    if (t >= 10) { 
+        exit(0);
     }
 
     set_motor_pwms(pwm, -pwm);
@@ -461,9 +469,9 @@ void loop() {
 
     Serial.print(t*1000);
     Serial.print(",");
-    Serial.print("NaN");
+    Serial.print(0.0);
     Serial.print(",");
-    Serial.print("NaN");
+    Serial.print(0.0);
     Serial.print(",");
     Serial.print(left_error);
     Serial.print(",");
