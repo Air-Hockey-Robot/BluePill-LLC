@@ -446,11 +446,30 @@ void loop() {
 
     array<float,2> angles = read_motor_angles();
     array<float,2> pos = theta_to_xy(angles[0], angles[1]);
-    float pwm = 20;
+    float pwm;
 
     if (t < 1) {
-        set_motor_pwms(pwm, -pwm);   
+        pwm = 20;
     } else if (t >= 1) {
-        set_motor_pwms(0, 0);   
+        pwm = 0;
     }
+
+    set_motor_pwms(pwm, -pwm);
+
+    float left_error = 0 - angles[0];
+    float right_error = 0 - angles[1];
+
+    Serial.print(t*1000);
+    Serial.print(",");
+    Serial.print("NaN");
+    Serial.print(",");
+    Serial.print("NaN");
+    Serial.print(",");
+    Serial.print(left_error);
+    Serial.print(",");
+    Serial.print(right_error);
+    Serial.print(",");
+    Serial.print(pwm);
+    Serial.print(",");
+    Serial.println(pwm);
 }
