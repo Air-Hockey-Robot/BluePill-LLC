@@ -448,21 +448,22 @@ void loop() {
     array<float,2> angles = read_motor_angles();
     array<float,2> pos = theta_to_xy(angles[0], angles[1]);
     float pwm;
+    float switch_time = 0.11;
 
-    if (t < 3) {
-        pwm = 10;
+    if (t < switch_time) {
+        pwm = 70;
     }
-    if (t >= 3) {
-        pwm = -10;
+    if (t >= switch_time) {
+        pwm = -70;
     } 
-    if (t >= 6) {
+    if (t >= 2*switch_time) {
         pwm = 0;
     } 
-    if (t >= 10) { 
+    if (t >= 3*switch_time) { 
         exit(0);
     }
 
-    set_motor_pwms(pwm, -pwm);
+    set_motor_pwms(-pwm, -pwm);
 
     float left_error = 0 - angles[0];
     float right_error = 0 - angles[1];
