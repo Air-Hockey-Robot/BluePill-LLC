@@ -135,23 +135,6 @@ float pid(float kp, float ki, float kd, float error, float accumulated_error, fl
 }
 
 /*
-
-*/
-array<float,2> feed_forward(float t) {
-    float power_2 = t*t;
-    float power_3 = power_2*t;
-    float power_4 = power_3*t;
-    float power_5 = power_4*t;
-
-    float left_feed_forward = 1;
-    float right_feed_forward = 1;
-
-
-
-    return {{left_feed_forward, right_feed_forward}};
-}
-
-/*
 Takes motor angles in degrees
 and converts them into cartesian position of the mallet in meters
 */
