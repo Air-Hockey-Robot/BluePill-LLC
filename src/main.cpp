@@ -356,10 +356,11 @@ void setup() {
 
     read_motor_angles(); //Need a dummy call to get the previous angle variable set properly
 
-    home_table(9, 6, 10);
+    // home_table(9, 6, 10);
+    delay(500);
 
     Serial.println("BEGIN CSV");
-    Serial.println("Time(ms),X_Target(cm),Y_Target(cm),Left_Error(deg),Right_Error(deg),Left_PID,Right_PID,Left_Feed_Forward,Right_Feed_Forward");
+    Serial.println("Time(ms),X_Target(cm),Y_Target(cm),Left_Error(deg),Right_Error(deg),Left_PWM,Right_PWM");
 
     previous_time = 0;
     start_time = micros();
@@ -367,40 +368,48 @@ void setup() {
 }
 
 void loop() {
+    float x_pos;
+    float y_pos;
 
     t = (micros() - start_time) / 1000000.0;
 
-    // Update xf, yf, vxf, vyf, and traj_duration
+    array<float,2> angles = read_motor_angles();
+    array<float,2> pos = theta_to_xy(angles[0], angles[1]);
+    float pwm;
+    float switch_time = 0.11;
 
-    if (t > tf) {
-        get_target_from_hlc();
-        path_start_time = t;
+    if (t < switch_time) {
+        pwm = 80;
     }
-        
-    float u = (t-path_start_time) / traj_duration;
-    float power_2 = u*u;
-    float power_3 = power_2*u;
-
-    float x_pos = cx[0] + cx[1]*u + cx[2]*power_2 + cx[3]*power_3;
-    float y_pos = cy[0] + cy[1]*u + cy[2]*power_2 + cy[3]*power_3;
-
-    if(x_pos < X_MIN) {
-        x_pos = X_MIN;
-    } else if(x_pos > X_MAX) {
-        x_pos = X_MAX;
+    if (t >= switch_time) {
+        pwm = -80;
+    } 
+    if (t >= 2*switch_time) {
+        pwm = 0;
+    } 
+    if (t >= 3*switch_time) { 
+        exit(0);
     }
 
-    if(y_pos < Y_MIN) {
-        y_pos = Y_MIN;
-    } else if(y_pos > Y_MAX) {
-        y_pos = Y_MAX;
-    }
+    set_motor_pwms(pwm, -pwm);
 
-    command_motors(x_pos, y_pos, t, previous_time);
+    float left_error = 0 - angles[0];
+    float right_error = 0 - angles[1];
 
-    previous_time = t;
-    xf_prev = xf;
-    yf_prev = yf;
+    Serial.print(t*1000);
+    Serial.print(",");
+    Serial.print(0.0);
+    Serial.print(",");
+    Serial.print(0.0);
+    Serial.print(",");
+    Serial.print(-left_error);
+    Serial.print(",");
+    Serial.print(-right_error);
+    Serial.print(",");
+    Serial.print(pwm);
+    Serial.print(",");
+    Serial.println(-pwm);
+
 }
 
 
